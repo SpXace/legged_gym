@@ -47,6 +47,68 @@ from legged_gym.utils.terrain import Terrain
 from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float
 from legged_gym.utils.helpers import class_to_dict
 from .legged_robot_config import LeggedRobotCfg
+import torch
+import torch.nn as nn
+from torchvision import models
+
+# class A1CameraMixin:
+#     def __init__(self, *args, **kwargs):
+#         self.follow_cam = None
+#         self.floating_cam = None
+#         super().__init__(*args, **kwargs)
+
+#     def init_aux_cameras(self, follow_cam=False, float_cam=False):
+#         if follow_cam:
+#             self.follow_cam, follow_trans = self.make_handle_trans(
+#                 1920, 1080, 0, (1.0, -1.0, 0.0), (0.0, 0.0, 3 * 3.14 / 4)
+#             )
+#             body_handle = self.gym.find_actor_rigid_body_handle(
+#                 self.envs[0], self.actor_handles[0], "base"
+#             )
+#             self.gym.attach_camera_to_body(
+#                 self.follow_cam,  # camera_handle,
+#                 self.envs[0],
+#                 body_handle,
+#                 follow_trans,
+#                 gymapi.FOLLOW_POSITION,
+#             )
+
+#         if float_cam:
+#             self.floating_cam, _ = self.make_handle_trans(
+#                 # 1280, 720, 0, (0, 0, 0), (0, 0, 0), hfov=50
+#                 1920, 1080, 0, (0, 0, 0), (0, 0, 0)
+#             )
+#             camera_position = gymapi.Vec3(5, 5, 5)
+#             camera_target = gymapi.Vec3(0, 0, 0)
+#             self.gym.set_camera_location(
+#                 self.floating_cam, self.envs[0], camera_position, camera_target
+#             )
+
+#     def make_handle_trans(self, width, height, env_idx, trans, rot, hfov=None):
+#         camera_props = gymapi.CameraProperties()
+#         camera_props.width = width
+#         camera_props.height = height
+#         camera_props.enable_tensors = True
+#         if hfov is not None:
+#             camera_props.horizontal_fov = hfov
+#         camera_handle = self.gym.create_camera_sensor(self.envs[env_idx], camera_props)
+#         local_transform = gymapi.Transform()
+#         local_transform.p = gymapi.Vec3(*trans)
+#         local_transform.r = gymapi.Quat.from_euler_zyx(*rot)
+#         return camera_handle, local_transform
+
+
+# class resnet18(nn.Module):
+#     def __init__(self):
+#         super(resnet18, self).__init__()
+#         self.model = models.resnet18(pretrained=True)
+#         self.num_features = self.model.fc.in_features
+#         self.model.fc = nn.Linear(self.num_features,10)
+#     def forward(self,x):
+#         out = self.model(x)
+
+# def pytorch_resnet18():
+#     return resnet18()
 
 class LeggedRobot(BaseTask):
     def __init__(self, cfg: LeggedRobotCfg, sim_params, physics_engine, sim_device, headless):
@@ -62,6 +124,75 @@ class LeggedRobot(BaseTask):
             device_id (int): 0, 1, ...
             headless (bool): Run without rendering if True
         """
+        #########################################
+
+        # self.camera_handles = []
+
+        # self.init_aux_cameras(cfg.env.follow_cam, cfg.env.float_cam)
+
+        # width, height = cfg.env.camera_res
+        # trans = (0.35, 0.0, 0.0)
+        # if cfg.env.train_type == "lbc":
+        #     for env_idx in range(self.num_envs):
+        #         cam1, trans1 = self.make_handle_trans(
+        #             width, height, env_idx, trans, (0.0, np.deg2rad(30), 0.0)
+        #         )
+        #         cam2, trans2 = self.make_handle_trans(
+        #             width, height, env_idx, trans, (0.0, np.deg2rad(-15), 0.0), hfov=70
+        #         )
+
+        #         self.camera_handles.append(cam1)
+        #         self.camera_handles.append(cam2)
+
+        #         body_handle = self.gym.find_actor_rigid_body_handle(
+        #             self.envs[env_idx], self.actor_handles[env_idx], "base"
+        #         )
+
+        #         for c, t in ([cam1, trans1], [cam2, trans2]):
+        #             self.gym.attach_camera_to_body(
+        #                 c,  # camera_handle,
+        #                 self.envs[env_idx],
+        #                 body_handle,
+        #                 t,
+        #                 gymapi.FOLLOW_TRANSFORM,
+        #             )
+
+        # self.floating_cam_moved = False
+
+        # x0, y0 = -1.1, -5.9
+        # x1, y1 = x0 - 4.75, y0 + 4.5
+        # xsBounds = [x0, x0, x1, x1]
+        # ysBounds = [y0, y1, y0, y1]
+        # self.draw_spheres(xsBounds, ysBounds)
+        # def pixel_to_isaac(pixel):
+        #     return 0.0587638 * pixel + -6.451
+
+        # xs, ys = self.terrain.shortest_path
+
+        # xs = [pixel_to_isaac(item) for item in xs]
+        # ys = [pixel_to_isaac(item) for item in ys]
+        # self.draw_spheres(xs, ys)
+        
+        
+        # def draw_spheres(self, xs, ys):
+        #     for x, y in zip(xs, ys):
+        #         trans = gymapi.Transform()
+        #         trans.p.x = x
+        #         trans.p.y = y
+        #         trans.p.z = 0
+
+        #         start_sphere_geom = gymutil.WireframeSphereGeometry(
+        #             0.05, 20, 20, trans, color=(0, 0, 1)
+        #         )
+
+        #         gymutil.draw_lines(
+        #             start_sphere_geom,
+        #             self.gym,
+        #             self.viewer,
+        #             self.envs[0],
+        #             trans,
+        #         )
+        #########################################
         self.cfg = cfg
         self.sim_params = sim_params
         self.height_samples = None
@@ -119,7 +250,51 @@ class LeggedRobot(BaseTask):
         if self.privileged_obs_buf is not None:
             self.privileged_obs_buf = torch.clip(self.privileged_obs_buf, -clip_obs, clip_obs)
         return self.obs_buf, self.privileged_obs_buf, self.rew_buf, self.reset_buf, self.extras
+        # #######################################
+        # if self.follow_cam is not None:
+        #     self.gym.start_access_image_tensors(self.sim)
+        #     image = gymtorch.wrap_tensor(
+        #         self.gym.get_camera_image_gpu_tensor(
+        #             self.sim,
+        #             self.envs[0],
+        #             self.follow_cam,
+        #             gymapi.IMAGE_COLOR,
+        #         )
+        #     )
+        #     self.gym.end_access_image_tensors(self.sim)
+        #     # img = cv2.cvtColor(image.cpu().numpy(), cv2.COLOR_RGB2BGR)
+        #     # cv2.imshow("Follow camera", img)
+        #     # cv2.waitKey(1)
 
+        # if not self.floating_cam_moved:
+        #     x0, y0, x1, y1 = [
+        #         float(i) for i in os.environ["isaac_bounds"].split("_")
+        #     ]
+        #     midpoint = (np.array([x0, y0]) + np.array([x1, y1])) / 2
+        #     camera_target = gymapi.Vec3(*midpoint, 0)
+        #     camera_position = camera_target + gymapi.Vec3(1, 1, 15)
+        #     if not self.headless:
+        #         self.gym.viewer_camera_look_at(
+        #             self.viewer, None, camera_position, camera_target
+        #         )
+        #     if self.floating_cam is not None:
+        #         self.gym.set_camera_location(
+        #             self.floating_cam, self.envs[0], camera_position, camera_target
+        #         )
+        #     self.floating_cam_moved = True
+
+        # if self.floating_cam is not None:
+        #     self.gym.start_access_image_tensors(self.sim)
+        #     image = gymtorch.wrap_tensor(
+        #         self.gym.get_camera_image_gpu_tensor(
+        #             self.sim,
+        #             self.envs[0],
+        #             self.floating_cam,
+        #             gymapi.IMAGE_COLOR,
+        #         )
+        #     )
+        #     self.gym.end_access_image_tensors(self.sim)
+        #######################################
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
             calls self._post_physics_step_callback() for common computations 
@@ -233,6 +408,27 @@ class LeggedRobot(BaseTask):
             self.rew_buf += rew
             self.episode_sums["termination"] += rew
 
+    # def get_images(self):
+    #     i = 0
+    #     # assert self.cfg.env.camera_type == "d" and self.num_envs == 1
+    #     self.gym.start_access_image_tensors(self.sim)
+    #     images = [
+    #         gymtorch.wrap_tensor(
+    #             self.gym.get_camera_image_gpu_tensor(
+    #                 self.sim,
+    #                 self.envs[i],
+    #                 self.camera_handles[2 * i + cam_id],
+    #                 gymapi.IMAGE_DEPTH,
+    #             )
+    #         )
+    #         .unsqueeze(0)
+    #         .unsqueeze(-1)
+    #         for cam_id in range(2)
+    #     ]
+    #     self.gym.end_access_image_tensors(self.sim)
+    #     tilted_image, level_image = images
+    #     return level_image, tilted_image
+    
     def compute_observations(self):
         """ Computes observations
         """
@@ -244,12 +440,11 @@ class LeggedRobot(BaseTask):
 
         goal = goal.expand((int)(self.actions.shape[0]), 2)
         # goal = goal.to(device)
-        # print(self.projected_gravity.shape)
-        # print(goal.shape)
-        # print((self.base_ang_vel  * self.obs_scales.ang_vel).shape)
-        # print(self.actions.shape)
-        # print((self.dof_vel * self.obs_scales.dof_vel).shape)
-        # print(((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos).shape)
+        # level_image, tilted_image = self.get_images()
+        # img1 = resnet18.pytorch_resnet18(level_image)
+        # img2 = resnet18.pytorch_resnet18(tilted_image)
+        # print(img1.shape)
+        # print(img2.shape)
         self.obs_buf = torch.cat((  self.base_lin_vel * self.obs_scales.lin_vel,
                                     self.base_ang_vel  * self.obs_scales.ang_vel,
                                     self.projected_gravity,
@@ -258,10 +453,10 @@ class LeggedRobot(BaseTask):
                                     self.dof_vel * self.obs_scales.dof_vel,
                                     self.actions,
                                     goal # 将目标点添加到输入中
+                                    # img1,
+                                    # img2
                                     ),dim=-1)
-        # print("--------------------------------------")
-        # print(self.obs_buf.shape)
-        # self.obs_buf.reshape(4096, 235)
+
         # add perceptive inputs if not blind
         if self.cfg.terrain.measure_heights:
             heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements

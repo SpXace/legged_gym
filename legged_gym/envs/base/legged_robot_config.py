@@ -40,6 +40,13 @@ class LeggedRobotCfg(BaseConfig):
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
+        ################
+        camera_res = [320, 180]
+        camera_type = "d"  # rgb
+        train_type = "lbc" 
+        follow_cam=False
+        float_cam=False
+        ################
 
     class terrain:
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
@@ -144,10 +151,10 @@ class LeggedRobotCfg(BaseConfig):
             collision = -1.
             feet_stumble = -0.0 
             action_rate = -0.01
-            stand_still = -0.
-            #----------------------
-            distance_to_goal = -0.1
-            dynamic_obstacle = -0.1
+            stand_still = -0.00001
+            #---------------------- 
+            distance_to_goal = -0.01
+            # dynamic_obstacle = -0.1
             #----------------------
 
         only_positive_rewards = True # if true negative total rewards are clipped at zero (avoids early termination problems)
