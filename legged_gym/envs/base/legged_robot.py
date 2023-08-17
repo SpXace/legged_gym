@@ -435,7 +435,7 @@ class LeggedRobot(BaseTask):
         print("#############################################")
         print(self.num_envs, self.num_obs)
         print("+++++++++++++++++++++++++++++++++++++++++++++")
-        goal = torch.tensor(self.goal_xy)
+        goal = torch.tensor(self.goal_xy).to(self.device)
         # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         goal = goal.expand((int)(self.actions.shape[0]), 2)
@@ -1083,8 +1083,8 @@ class LeggedRobot(BaseTask):
         print(self.curr_xy)
         print(dx)
         print(dy)
-        print(torch.square(torch.tensor(dx * dx + dy * dy)))
-        return torch.square(torch.tensor(dx * dx + dy * dy))
+        print(torch.square(torch.tensor(dx * dx + dy * dy).to(self.device)))
+        return torch.square(torch.tensor(dx * dx + dy * dy).to(self.device))
     
     def _reward_dynamic_obstacle(self):
         return self.dynamic_collision_num

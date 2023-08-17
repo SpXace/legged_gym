@@ -66,5 +66,6 @@ if __name__ == '__main__':
     # ipp = os.getenv('MASTER_IP')
     # print('this is ip')
     # print(ipp)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     args = get_args()
     train(args)
