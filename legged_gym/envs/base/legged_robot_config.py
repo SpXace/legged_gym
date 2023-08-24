@@ -153,7 +153,8 @@ class LeggedRobotCfg(BaseConfig):
             action_rate = -0.01
             stand_still = -0.00001
             #---------------------- 
-            distance_to_goal = -0.01
+            directAndSpeed = -1.
+            # distance_to_goal = -0.01
             # dynamic_obstacle = -0.1
             #----------------------
 
