@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
+import pdb
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, envs
 from time import time
@@ -226,11 +227,11 @@ class LeggedRobot(BaseTask):
         rho = np.linalg.norm(self.goal_xy - self.curr_xy)
         dx, dy = self.goal_xy - self.curr_xy
         theta = wrap_heading(np.arctan2(dy, dx) - yaw)
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        rho = torch.tensor(rho)
+        # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        rho = torch.tensor(rho).to(self.device)
         rho = rho.expand((int)(self.actions.shape[0]))
-        print(rho.shape)
-        print(theta)
+        # print(rho.shape)
+        # print(theta)  # TODO
         val = [rho, theta]
         val = torch.stack(val)
         # print(theta.type)
@@ -246,9 +247,7 @@ class LeggedRobot(BaseTask):
         # res.append(rho)
         # print(res)
         # res = torch.tensor(res)
-        return torch.tensor(val, device="cuda", dtype=torch.float32)
-
-
+        return torch.tensor(val, device=self.device, dtype=torch.float32)
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -461,7 +460,7 @@ class LeggedRobot(BaseTask):
         print("#############################################")
         print(self.num_envs, self.num_obs)
         print("---------------------------------------------")
-        goal = torch.tensor(self.goal_xy)
+        goal = torch.tensor(self.goal_xy).to(self.device)
         # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         goal = goal.expand((int)(self.actions.shape[0]), 2)
@@ -474,11 +473,12 @@ class LeggedRobot(BaseTask):
         # img2 = resnet18.pytorch_resnet18(tilted_image)
         # print(img1.shape)
         # print(img2.shape)
-        print(goal.shape)
-        rho_theta = rho_theta.cpu()
+        # print(goal.shape)  # TODO
+        # rho_theta = rho_theta.cpu()
         # rho_theta = rho_theta.expand(2, (int)(self.actions.shape[0]))
         rho_theta = rho_theta.t()
-        print(rho_theta.shape)
+        # print(rho_theta.shape)
+        # pdb.set_trace()
         self.obs_buf = torch.cat((  self.base_lin_vel * self.obs_scales.lin_vel,
                                     self.base_ang_vel  * self.obs_scales.ang_vel,
                                     self.projected_gravity,
@@ -765,7 +765,7 @@ class LeggedRobot(BaseTask):
             #增加goal之后，维度+2
             print("arrive here")
             noise_vec[48:237] = noise_scales.height_measurements* noise_level * self.obs_scales.height_measurements
-        print(noise_vec.shape)
+        # print(noise_vec.shape)
         return noise_vec
 
     #----------------------------------------
@@ -806,9 +806,9 @@ class LeggedRobot(BaseTask):
         self.commands_scale = torch.tensor([self.obs_scales.lin_vel, self.obs_scales.lin_vel, self.obs_scales.ang_vel], device=self.device, requires_grad=False,) # TODO change this
         self.feet_air_time = torch.zeros(self.num_envs, self.feet_indices.shape[0], dtype=torch.float, device=self.device, requires_grad=False)
         self.last_contacts = torch.zeros(self.num_envs, len(self.feet_indices), dtype=torch.bool, device=self.device, requires_grad=False)
-        self.base_lin_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10])
-        self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
-        self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec)
+        self.base_lin_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10]).to(self.device)
+        self.base_ang_vel = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13]).to(self.device)
+        self.projected_gravity = quat_rotate_inverse(self.base_quat, self.gravity_vec).to(self.device)
         if self.cfg.terrain.measure_heights:
             self.height_points = self._init_height_points()
         self.measured_heights = 0
@@ -1114,7 +1114,7 @@ class LeggedRobot(BaseTask):
         yaw = torch.atan2(forward[:, 1], forward[:, 0])
         dx, dy = self.goal_xy - self.curr_xy
         theta = wrap_heading(np.arctan2(dy, dx) - yaw)
-        return torch.abs(torch.tensor(theta))
+        return torch.abs(torch.tensor(theta).to(self.device))
 
     def _reward_distance_to_goal(self):
         #当前点与目标点之间的距离
@@ -1123,8 +1123,8 @@ class LeggedRobot(BaseTask):
         print(self.curr_xy)
         print(dx)
         print(dy)
-        print(torch.square(torch.tensor(dx * dx + dy * dy)))
-        return torch.square(torch.tensor(dx * dx + dy * dy))
+        print(torch.square(torch.tensor(dx * dx + dy * dy).to(self.device)))
+        return torch.square(torch.tensor(dx * dx + dy * dy).to(self.device))
     
     def _reward_dynamic_obstacle(self):
         return self.dynamic_collision_num

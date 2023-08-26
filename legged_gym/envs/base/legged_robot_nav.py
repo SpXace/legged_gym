@@ -210,7 +210,7 @@ class LeggedRobotNav(LeggedRobot):
         dx, dy = self.goal_xy - self.curr_xy
         theta = wrap_heading(np.arctan2(dy, dx) - yaw)
         theta = torch.tensor(theta)
-        return torch.tensor([rho, theta], device="cuda", dtype=torch.float32)
+        return torch.tensor([rho, theta], device=self.device, dtype=torch.float32)
 
     def step(self, actions):
         """Apply actions, simulate, call self.post_physics_step()
