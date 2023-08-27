@@ -1114,7 +1114,7 @@ class LeggedRobot(BaseTask):
         yaw = torch.atan2(forward[:, 1], forward[:, 0])
         dx, dy = self.goal_xy - self.curr_xy
         theta = wrap_heading(np.arctan2(dy, dx) - yaw)
-        return torch.abs(torch.tensor(theta))
+        return torch.cos(torch.tensor(theta))
 
     def _reward_distance_to_goal(self):
         #当前点与目标点之间的距离
