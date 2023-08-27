@@ -153,14 +153,14 @@ class LeggedRobotCfg(BaseConfig):
             action_rate = -0.01
             stand_still = -0.00001
             #---------------------- 
-            directAndSpeed = -5.
+            directAndSpeed = -0.5
             # distance_to_goal = -0.01
             # dynamic_obstacle = -0.1
             #----------------------
 
         only_positive_rewards = True # if true negative total rewards are clipped at zero (avoids early termination problems)
         # tracking_sigma = 0.25 # tracking reward = exp(-error^2/sigma)
-        tracking_sigma = 1.0
+        tracking_sigma = 1.0  # TODO
         soft_dof_pos_limit = 1. # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 1.
         soft_torque_limit = 1.
