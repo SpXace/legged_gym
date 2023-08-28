@@ -171,10 +171,11 @@ def get_args():
         custom_parameters=custom_parameters)
 
     # name allignment
-    args.sim_device_id = args.compute_device_id
+    # args.sim_device_id = args.compute_device_id
     args.sim_device = args.sim_device_type
     if args.sim_device=='cuda':
-        args.sim_device += f":{args.sim_device_id}"
+        args.sim_device = args.rl_device
+        # args.sim_device += f":{args.sim_device_id}"
     return args
 
 def export_policy_as_jit(actor_critic, path):

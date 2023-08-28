@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
+import pdb
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, envs
 from time import time
@@ -1111,10 +1112,16 @@ class LeggedRobot(BaseTask):
     
     def _reward_directAndSpeed(self):
         forward = quat_apply(self.base_quat, self.forward_vec)
-        yaw = torch.atan2(forward[:, 1], forward[:, 0])
-        dx, dy = self.goal_xy - self.curr_xy
-        theta = wrap_heading(np.arctan2(dy, dx) - yaw)  # [-pi, pi)
-        return 1 - torch.cos(torch.tensor(theta).to(self.device))
+        # yaw = torch.atan2(forward[:, 1], forward[:, 0])
+        # dx, dy = self.goal_xy - self.curr_xy
+        dd = torch.from_numpy(self.goal_xy - self.curr_xy).to(self.device).unsqueeze(0).float()
+        dot_result = torch.matmul(forward[:,:2], dd.t()).squeeze()
+        cos_result = dot_result / (torch.norm(forward[:,:2], dim=1) * torch.norm(dd))
+        # theta = wrap_heading(np.arctan2(dy, dx) - yaw)  # [-pi, pi)
+        # ret = torch.cos(torch.tensor(theta).to(self.device))
+        assert torch.max(cos_result) < 1.001 and torch.min(cos_result) > -1.001
+        cos_result = cos_result.clamp_(min=-1, max=1)
+        return torch.acos(cos_result)
 
     def _reward_distance_to_goal(self):
         #当前点与目标点之间的距离

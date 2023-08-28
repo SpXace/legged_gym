@@ -45,6 +45,6 @@ cd legged_gym && pip install -e .
 
 ## Train
 ```shell
-python legged_gym/scripts/train.py --task=a1
+python legged_gym/scripts/train.py --task=a1 --rl_device="cuda:3"
 ```
 
